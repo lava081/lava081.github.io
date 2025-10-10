@@ -1,23 +1,36 @@
 <template>
   <div class="center-container">
     <title>早上好喵! - lava081的测试页</title>
-  <h1>你好喵，这里是 lava081 的静态测试页！</h1>
+    <h1>你好喵，这里是 lava081 的静态测试页！</h1>
+    <p>部署成功！🎉</p>
     <div class="status-display">
       <div class="status-item">
         <p class="status-label">访问地址：</p>
         <p class="status-text">{{ currentUrl }}</p>
       </div>
       <div class="status-item">
-        <p class="status-label">DNS服务器：</p>
-        <p class="status-text">{{ dnsInfo }}</p>
+        <p class="status-label">浏览器标识：</p>
+        <p class="status-text" @click="copyBrowserInfo" title="点击复制User Agent">{{ browserInfo }}</p>
       </div>
       <div class="status-item">
         <p class="status-label">访问延迟：</p>
         <p class="status-text">{{ latency }}ms</p>
       </div>
     </div>
-    
-  <p>部署成功！🎉</p>
+  
+  <!-- 剪贴板内容显示区域 -->
+  <div class="clipboard-section">
+    <div class="clipboard-header">
+      <h3>剪贴板内容</h3>
+    </div>
+    <textarea 
+      ref="clipboardTextarea"
+      v-model="clipboardContent" 
+      readonly 
+      class="clipboard-textarea"
+      placeholder="正在加载剪贴板内容..."
+    ></textarea>
+  </div>
     
     <!-- 联系方式区域 -->
     <div class="contact-section">
@@ -89,17 +102,22 @@
 <script setup>
 // 获取当前URL
 const currentUrl = ref('')
-const dnsInfo = ref('检测中...')
+const browserInfo = ref('检测中...')
 const latency = ref(0)
 let refreshInterval = null
+
+// 剪贴板相关状态
+const clipboardContent = ref('')
+const clipboardTextarea = ref(null)
+let clipboardInterval = null
 
 // 在客户端获取当前URL和网络信息
 onMounted(() => {
   if (typeof window !== 'undefined') {
     currentUrl.value = window.location.href
     
-    // 获取DNS信息
-    getDNSInfo()
+    // 获取浏览器标识信息
+    getBrowserInfo()
     
     // 测量访问延迟
     measureLatency()
@@ -108,6 +126,9 @@ onMounted(() => {
     refreshInterval = setInterval(() => {
       measureLatency()
     }, 10000)
+    
+    // 启动剪贴板自动刷新
+    startAutoRefresh()
   }
 })
 
@@ -116,28 +137,133 @@ onUnmounted(() => {
   if (refreshInterval) {
     clearInterval(refreshInterval)
   }
+  if (clipboardInterval) {
+    clearInterval(clipboardInterval)
+  }
 })
 
-// 获取DNS信息
-async function getDNSInfo() {
+// 获取浏览器标识信息
+function getBrowserInfo() {
   try {
-    // 尝试通过WebRTC获取本地IP来推断DNS
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
-    if (connection) {
-      dnsInfo.value = connection.dns || '未知'
-    } else {
-      // 备用方案：通过API获取DNS信息
-      const response = await fetch('https://dns.google/resolve?name=google.com&type=A')
-      if (response.ok) {
-        dnsInfo.value = 'Google DNS'
-      } else {
-        dnsInfo.value = '系统默认'
-      }
+    const userAgent = navigator.userAgent
+    const language = navigator.language
+    const cookieEnabled = navigator.cookieEnabled
+    const doNotTrack = navigator.doNotTrack
+    const hardwareConcurrency = navigator.hardwareConcurrency
+    
+    // 检测操作系统
+    let os = '未知'
+    if (userAgent.includes('Windows NT 10.0')) os = 'Windows 10/11'
+    else if (userAgent.includes('Windows NT 6.3')) os = 'Windows 8.1'
+    else if (userAgent.includes('Windows NT 6.1')) os = 'Windows 7'
+    else if (userAgent.includes('Windows NT 6.0')) os = 'Windows Vista'
+    else if (userAgent.includes('Windows NT 5.1')) os = 'Windows XP'
+    else if (userAgent.includes('Mac OS X')) os = 'macOS'
+    else if (userAgent.includes('Linux')) os = 'Linux'
+    else if (userAgent.includes('Android')) os = 'Android'
+    else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) os = 'iOS'
+    
+    // 检测浏览器
+    let browser = '未知'
+    let browserVersion = ''
+    if (userAgent.includes('Chrome/')) {
+      browser = 'Chrome'
+      const match = userAgent.match(/Chrome\/(\d+\.\d+)/)
+      if (match) browserVersion = match[1]
+    } else if (userAgent.includes('Firefox/')) {
+      browser = 'Firefox'
+      const match = userAgent.match(/Firefox\/(\d+\.\d+)/)
+      if (match) browserVersion = match[1]
+    } else if (userAgent.includes('Safari/') && !userAgent.includes('Chrome')) {
+      browser = 'Safari'
+      const match = userAgent.match(/Version\/(\d+\.\d+)/)
+      if (match) browserVersion = match[1]
+    } else if (userAgent.includes('Edge/')) {
+      browser = 'Edge'
+      const match = userAgent.match(/Edge\/(\d+\.\d+)/)
+      if (match) browserVersion = match[1]
+    } else if (userAgent.includes('Opera/') || userAgent.includes('OPR/')) {
+      browser = 'Opera'
+      const match = userAgent.match(/(?:Opera|OPR)\/(\d+\.\d+)/)
+      if (match) browserVersion = match[1]
     }
-  } catch (error) {
-    dnsInfo.value = '检测失败'
+    
+    // 检测屏幕信息
+    const screenWidth = screen.width
+    const screenHeight = screen.height
+    const screenColorDepth = screen.colorDepth
+    
+    // 检测时区
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    
+    // 检测网络连接信息
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+    const connectionType = connection ? connection.effectiveType || '未知' : '未知'
+    
+    // 构建浏览器标识字符串
+    const browserFingerprint = [
+      `${browser}${browserVersion ? ' ' + browserVersion : ''}`,
+      os,
+      `${screenWidth}x${screenHeight}`,
+      `${screenColorDepth}bit`,
+      language,
+      timezone,
+      `${hardwareConcurrency}核`,
+      connectionType,
+      cookieEnabled ? 'Cookie启用' : 'Cookie禁用',
+      doNotTrack === '1' ? 'DNT启用' : 'DNT禁用'
+    ].join(' | ')
+    
+    browserInfo.value = browserFingerprint
+  } catch {
+    browserInfo.value = '检测失败'
   }
 }
+
+// 复制浏览器标识信息
+async function copyBrowserInfo() {
+  try {
+    // 复制原始的User Agent字符串
+    const originalUA = navigator.userAgent
+    await navigator.clipboard.writeText(originalUA)
+    // 临时显示复制成功提示
+    const originalText = browserInfo.value
+    browserInfo.value = 'User Agent已复制到剪贴板！'
+    setTimeout(() => {
+      browserInfo.value = originalText
+    }, 2000)
+  } catch {
+    // 如果剪贴板API不可用，显示User Agent
+    alert(`User Agent：\n${navigator.userAgent}`)
+  }
+}
+
+
+// 启动自动刷新
+function startAutoRefresh() {
+  if (clipboardInterval) {
+    clearInterval(clipboardInterval)
+  }
+  
+  // 立即读取一次剪贴板内容
+  readClipboardContent()
+  
+  // 设置定时器每2秒自动刷新一次
+  clipboardInterval = setInterval(async () => {
+    await readClipboardContent()
+  }, 2000)
+}
+
+// 读取剪贴板内容
+async function readClipboardContent() {
+  try {
+    const text = await navigator.clipboard.readText()
+    clipboardContent.value = text
+  } catch (error) {
+    clipboardContent.value = '无法读取剪贴板内容，可能是权限问题或浏览器不支持'
+  }
+}
+
 
 // 测量访问延迟
 async function measureLatency() {
@@ -152,7 +278,7 @@ async function measureLatency() {
     
     const endTime = performance.now()
     latency.value = Math.round(endTime - startTime)
-  } catch (error) {
+  } catch {
     // 如果请求失败，使用页面加载时间作为替代
     latency.value = Math.round(performance.now())
   }
@@ -232,11 +358,12 @@ h1 {
 }
 
 h2 {
-  font-size: 1.8rem;
-  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
   color: var(--text-color);
   text-align: left;
   width: 100%;
+  font-weight: 600;
 }
 
 p {
@@ -244,6 +371,7 @@ p {
   margin-bottom: 3rem;
   color: var(--text-color);
 }
+
 
 /* 状态显示区域 */
 .status-display {
@@ -278,6 +406,114 @@ p {
   font-weight: 600;
   margin: 0;
   word-break: break-all;
+}
+
+/* 浏览器标识特殊样式 */
+.status-item:has(.status-text[title="点击复制"]) .status-text {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.5rem;
+  border-radius: 6px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-item:has(.status-text[title="点击复制"]) .status-text:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.5);
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+}
+
+.status-item:has(.status-text[title="点击复制"]) .status-text:active {
+  transform: scale(0.98);
+}
+
+/* 剪贴板内容显示区域样式 */
+.clipboard-section {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(107, 114, 128, 0.05) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 10px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.clipboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.clipboard-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+
+.clipboard-textarea {
+  width: 100%;
+  height: 120px;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  resize: vertical;
+  background: #f9fafb;
+  color: #374151;
+  outline: none;
+  transition: border-color 0.2s ease;
+  min-height: 80px;
+  max-height: 200px;
+}
+
+.clipboard-textarea:focus {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+
+/* 暗黑模式适配 */
+.dark .clipboard-section {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(107, 114, 128, 0.1) 100%);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.dark .clipboard-header {
+  border-bottom-color: rgba(34, 197, 94, 0.4);
+}
+
+.dark .clipboard-header h3 {
+  color: #f9fafb;
+}
+
+
+.dark .clipboard-textarea {
+  background: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark .clipboard-textarea:focus {
+  border-color: #22c55e;
 }
 
 /* 联系方式区域 */
