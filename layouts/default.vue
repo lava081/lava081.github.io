@@ -429,11 +429,11 @@ body {
   padding: 8px 12px;
   border: none;
   border-radius: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #22c55e 0%, #6b7280 100%);
   color: white;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
   font-size: 14px;
   font-weight: 500;
   overflow: hidden;
@@ -441,12 +441,12 @@ body {
 
 .theme-toggle-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
 }
 
 .theme-toggle-btn:active {
   transform: translateY(0);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
 }
 
 .theme-toggle-btn.dark-mode {

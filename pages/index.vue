@@ -95,6 +95,16 @@
           <Icon name="lucide:send" class="btn-icon" />
           <span>Telegram</span>
         </button>
+        
+        <!-- 视奸 链接 -->
+        <button 
+          class="contact-btn spy-btn"
+          @click="openSpy"
+          title="感谢sleepy-project/sleepy"
+        >
+          <Icon name="lucide:eye" class="btn-icon" />
+          <span>视奸</span>
+        </button>
       </div>
     </div>
   </div>
@@ -159,14 +169,18 @@ function getBrowserInfo() {
     else if (userAgent.includes('Windows NT 6.0')) os = 'Windows Vista'
     else if (userAgent.includes('Windows NT 5.1')) os = 'Windows XP'
     else if (userAgent.includes('Mac OS X')) os = 'macOS'
-    else if (userAgent.includes('Linux')) os = 'Linux'
     else if (userAgent.includes('Android')) os = 'Android'
     else if (userAgent.includes('iPhone') || userAgent.includes('iPad')) os = 'iOS'
+    else if (userAgent.includes('Linux')) os = 'Linux'
     
     // 检测浏览器
     let browser = '未知'
     let browserVersion = ''
-    if (userAgent.includes('Chrome/')) {
+    if (userAgent.includes('Edge/')) {
+      browser = 'Edge'
+      const match = userAgent.match(/Edge\/(\d+\.\d+)/)
+      if (match) browserVersion = match[1]
+    } else if (userAgent.includes('Chrome/')) {
       browser = 'Chrome'
       const match = userAgent.match(/Chrome\/(\d+\.\d+)/)
       if (match) browserVersion = match[1]
@@ -177,10 +191,6 @@ function getBrowserInfo() {
     } else if (userAgent.includes('Safari/') && !userAgent.includes('Chrome')) {
       browser = 'Safari'
       const match = userAgent.match(/Version\/(\d+\.\d+)/)
-      if (match) browserVersion = match[1]
-    } else if (userAgent.includes('Edge/')) {
-      browser = 'Edge'
-      const match = userAgent.match(/Edge\/(\d+\.\d+)/)
       if (match) browserVersion = match[1]
     } else if (userAgent.includes('Opera/') || userAgent.includes('OPR/')) {
       browser = 'Opera'
@@ -332,6 +342,11 @@ function openTelegram() {
   const telegramUsername = 'lava081' // 请替换为您的Telegram用户名
   window.open(`https://t.me/${telegramUsername}`, '_blank')
 }
+
+function openSpy() {
+  // 打开视奸页面
+  window.open('https://lava081-sleepy.hf.space', '_blank')
+}
 </script>
 <style scoped>
 /* 居中容器 */
@@ -437,6 +452,8 @@ p {
   border: 1px solid rgba(34, 197, 94, 0.2);
   border-radius: 10px;
   animation: slideIn 0.3s ease-out;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 @keyframes slideIn {
@@ -483,6 +500,9 @@ p {
   transition: border-color 0.2s ease;
   min-height: 80px;
   max-height: 200px;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .clipboard-textarea:focus {
@@ -524,7 +544,7 @@ p {
 
 .contact-buttons {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 0.8rem;
   margin-top: 2rem;
 }
@@ -622,6 +642,17 @@ p {
   box-shadow: 0 8px 25px rgba(0, 136, 204, 0.3);
 }
 
+/* 视奸 按钮样式 */
+.spy-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: white;
+}
+
+.spy-btn:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+}
+
 /* 按钮图标 */
 .btn-icon {
   width: 20px;
@@ -674,14 +705,14 @@ p {
   }
   
   .contact-buttons {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
   }
 }
 
 @media (max-width: 1024px) {
   .contact-buttons {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
   }
 }
@@ -693,7 +724,7 @@ p {
   }
   
   .contact-buttons {
-    grid-template-columns: repeat(6, 1fr) !important;
+    grid-template-columns: repeat(7, 1fr) !important;
     gap: 0.1rem !important;
   }
   
@@ -716,6 +747,19 @@ p {
   
   .btn-icon {
     display: none !important;
+  }
+  
+  /* 手机端剪贴板区域优化 */
+  .clipboard-section {
+    margin: 1rem 0;
+    padding: 0.75rem;
+  }
+  
+  .clipboard-textarea {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    height: 100px;
+    min-height: 60px;
   }
 }
 
@@ -743,5 +787,20 @@ p {
 
 .dark .contact-btn:hover {
   box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15);
+}
+
+/* 暗黑模式标题渐变 */
+.dark h2 {
+  background: linear-gradient(135deg, #22c55e 0%, #6b7280 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .clipboard-header h3 {
+  background: linear-gradient(135deg, #22c55e 0%, #6b7280 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 </style>
