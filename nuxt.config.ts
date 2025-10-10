@@ -17,9 +17,8 @@ export default defineNuxtConfig({
       }
     }
   },
-  debug: true,
+  debug: false,
   // GitHub Pages configuration - root path deployment
-  ssr: false,
   nitro: {
     prerender: {
       routes: ["/"]
