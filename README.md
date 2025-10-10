@@ -1,75 +1,62 @@
-# Nuxt Minimal Starter
+# Demo Nuxt
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+一个使用 Nuxt 3 构建的演示项目。
 
-## Setup
+## 🚀 GitHub Pages 部署指南
 
-Make sure to install dependencies:
+### 1. 准备工作
+
+确保你的项目已经推送到 GitHub 仓库。
+
+### 2. 启用 GitHub Pages
+
+1. 进入你的 GitHub 仓库
+2. 点击 **Settings** 标签
+3. 在左侧菜单中找到 **Pages**
+4. 在 **Source** 部分选择 **GitHub Actions**
+
+### 3. 配置仓库设置
+
+确保你的仓库名称与你的GitHub用户名相同，这样网站就会部署在根路径 `https://你的用户名.github.io`
+
+### 4. 推送代码
 
 ```bash
-# npm
+git add .
+git commit -m "Add GitHub Pages deployment"
+git push origin main
+```
+
+### 5. 查看部署
+
+- 推送代码后，GitHub Actions 会自动开始构建和部署
+- 你可以在 **Actions** 标签中查看部署进度
+- 部署完成后，你的网站将在 `https://你的用户名.github.io` 访问
+
+## 🛠️ 本地开发
+
+```bash
+# 安装依赖
 npm install
 
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
+# 启动开发服务器
 npm run dev
 
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+# 构建静态文件
+npm run generate
 ```
 
-## Production
+## 📁 项目结构
 
-Build the application for production:
+- `pages/index.vue` - 首页
+- `layouts/default.vue` - 默认布局
+- `.github/workflows/deploy.yml` - GitHub Actions 部署配置
+- `nuxt.config.ts` - Nuxt 配置文件
 
-```bash
-# npm
-npm run build
+## 🎨 功能特性
 
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+- 🌙 暗黑模式切换
+- 📱 响应式设计
+- 🔗 联系方式按钮
+- 📊 实时状态显示
+- 🎯 动态网站图标

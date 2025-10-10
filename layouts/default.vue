@@ -11,14 +11,6 @@
       3. background-color 由主题变量控制
     -->
     <nav class="navbar">
-      <!-- 左侧 Logo -->
-      <!-- 
-        1. 固定位置在导航栏左侧
-        2. 图标高度由 CSS 控制
-      -->
-      <div class="navbar-left">
-        <img src="/logo.png" alt="Logo" class="logo" />
-      </div>
 
       <!-- 右侧用户头像 -->
       <!-- 
@@ -34,7 +26,7 @@
         -->
         <button 
           class="login-button" 
-          @click="user_login_state ? null : $router.push('/login')"
+          @click="handleLoginClick"
         >
           <!-- 已登录状态 -->
           <template v-if="user_login_state">
@@ -73,22 +65,35 @@
     <footer class="footer">
       <!-- 暗黑模式切换按钮 -->
       <div class="footer-left">
-        <UButton
-          :icon="isDark ? 'i-lucide-moon' : 'i-lucide-sun'"
-          variant="outline"
-          class="dark-mode-toggle"
+        <button 
+          class="theme-toggle-btn"
           @click="isDark = !isDark"
-        />
+          :class="{ 'dark-mode': isDark }"
+          :title="isDark ? '切换到亮色模式' : '切换到暗黑模式'"
+        >
+          <div class="theme-toggle-icon">
+            <Icon 
+              :name="isDark ? 'lucide:moon' : 'lucide:sun'" 
+              class="icon"
+            />
+          </div>
+          <div class="theme-toggle-track">
+            <div class="theme-toggle-thumb"></div>
+          </div>
+        </button>
       </div>
       <!-- 版权信息 -->
       <div class="footer-center">
         <p>© {{ new Date().getFullYear() }} lava081.</p>
       </div>
+      <!-- 右侧占位 -->
+      <div class="footer-right"></div>
     </footer>
   </div>
 </template>
 
 <script setup>
+import { computed, watch } from 'vue'
 
 // 暗黑模式状态管理
 // 
@@ -106,6 +111,56 @@ const isDark = computed({
   }
 })
 
+// 动态favicon管理
+// 
+// 1. 根据暗黑模式状态动态切换favicon
+// 2. 暗黑模式：使用 favicon-dark.png
+// 3. 亮色模式：使用 favicon.png（移除-dark后缀）
+const faviconUrl = computed(() => {
+  return isDark.value 
+    ? 'https://github.githubassets.com/favicons/favicon-dark.png'
+    : 'https://github.githubassets.com/favicons/favicon.png'
+})
+
+// 监听暗黑模式变化，动态更新favicon
+watch(isDark, () => {
+  updateFavicon(faviconUrl.value)
+}, { immediate: true })
+
+// 更新favicon的函数
+function updateFavicon(url) {
+  // 确保在客户端环境中执行
+  if (typeof window !== 'undefined') {
+    // 移除现有的favicon链接
+    const existingLinks = document.querySelectorAll('link[rel*="icon"]')
+    existingLinks.forEach(link => link.remove())
+    
+    // 添加新的favicon链接
+    const link = document.createElement('link')
+    link.rel = 'icon'
+    link.type = 'image/png'
+    link.href = url
+    document.head.appendChild(link)
+    
+    // 同时更新apple-touch-icon（如果需要）
+    const appleLink = document.createElement('link')
+    appleLink.rel = 'apple-touch-icon'
+    appleLink.href = url
+    document.head.appendChild(appleLink)
+  }
+}
+
+// 使用useHead设置初始favicon
+useHead({
+  link: [
+    {
+      rel: 'icon',
+      type: 'image/png',
+      href: faviconUrl
+    }
+  ]
+})
+
 // 用户状态模拟（实际应从 Vuex/Pinia store 获取）
 // 
 // 1. user_login_state：模拟登录状态
@@ -114,6 +169,39 @@ const isDark = computed({
 const user_login_state = true // 模拟已登录状态
 const user_name = 'lava081'   // 模拟用户名
 const user_avatarUrl = 'https://gitee.com/lava081.png' // 模拟用户头像地址
+
+// 处理登录按钮点击事件
+function handleLoginClick() {
+  const router = useRouter()
+  if (user_login_state) {
+    // 已登录状态：可以跳转到用户中心或个人资料页面
+    // 这里可以根据实际需求跳转到不同页面
+    // router.push('/profile') // 假设有个人资料页面
+  } else {
+    // 未登录状态：跳转到登录页面
+    router.push('/login')
+  }
+}
+
+// 模拟点击功能
+function simulateClick(elementSelector) {
+  // 确保在客户端环境中执行
+  if (typeof window !== 'undefined') {
+    const element = document.querySelector(elementSelector)
+    if (element) {
+      // 创建并分发点击事件
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window
+      })
+      element.dispatchEvent(clickEvent)
+      console.log(`模拟点击了元素: ${elementSelector}`)
+    } else {
+      console.warn(`未找到元素: ${elementSelector}`)
+    }
+  }
+}
 </script>
 
 <style>
@@ -212,16 +300,6 @@ body {
   object-fit: cover;
 }
 
-/* 导航栏Logo样式 */
-/* 
-  1. 固定高度 60px
-  3. z-index:53 确保层级最高
-*/
-.navbar .logo {
-  height: 60px;
-  z-index: 53;
-}
-
 /* 内容区域样式 */
 /* 
   1. flex:1 占据剩余垂直空间
@@ -255,10 +333,14 @@ body {
 /* 页脚左侧按钮容器 */
 /* 
   1. flex 布局垂直居中子元素
+  2. 添加左侧间距
 */
 .footer-left {
   display: flex;
   align-items: center;
+  padding-left: 2rem;
+  min-width: 120px;
+  justify-content: flex-start;
 }
 
 /* 页脚居中文本 */
@@ -269,6 +351,47 @@ body {
 .footer-center {
   flex: 1;
   text-align: center;
+}
+
+/* 页脚右侧占位 */
+/* 
+  1. flex 布局垂直居中子元素
+  2. 添加右侧间距
+*/
+.footer-right {
+  display: flex;
+  align-items: center;
+  padding-right: 2rem;
+  min-width: 120px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .footer-left {
+    padding-left: 1rem;
+    min-width: 80px;
+  }
+  
+  .footer-right {
+    padding-right: 1rem;
+    min-width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 0.5rem;
+  }
+  
+  .footer-left {
+    padding-left: 0.5rem;
+    min-width: 60px;
+  }
+  
+  .footer-right {
+    padding-right: 0.5rem;
+    min-width: 60px;
+  }
 }
 
 /* 暗黑模式主题变量 */
@@ -297,9 +420,115 @@ body {
   background-color: var(--background-color);
 }
 
-.dark .dark-mode-toggle {
+/* 现代化主题切换按钮样式 */
+.theme-toggle-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  background-color: var(--background-color);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+}
+
+.theme-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.theme-toggle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.theme-toggle-btn.dark-mode {
+  background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  box-shadow: 0 4px 15px rgba(45, 55, 72, 0.3);
+}
+
+.theme-toggle-btn.dark-mode:hover {
+  box-shadow: 0 8px 25px rgba(45, 55, 72, 0.4);
+}
+
+.theme-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle-btn:hover .theme-toggle-icon {
+  transform: rotate(15deg) scale(1.1);
+}
+
+.theme-toggle-btn.dark-mode .theme-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.theme-toggle-btn.dark-mode:hover .theme-toggle-icon {
+  transform: rotate(195deg) scale(1.1);
+}
+
+.theme-toggle-track {
+  position: relative;
+  width: 40px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.theme-toggle-btn.dark-mode .theme-toggle-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-btn.dark-mode .theme-toggle-thumb {
+  transform: translateX(20px);
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  transition: all 0.3s ease;
+}
+
+/* 添加脉冲动画效果 */
+.theme-toggle-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.theme-toggle-btn:hover::before {
+  transform: translateX(100%);
 }
 
 /* 主体背景色和文字色 */
