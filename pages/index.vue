@@ -176,9 +176,9 @@ function getBrowserInfo() {
     // 检测浏览器
     let browser = '未知'
     let browserVersion = ''
-    if (userAgent.includes('Edge/')) {
+    if (userAgent.includes('Edg/')) {
       browser = 'Edge'
-      const match = userAgent.match(/Edge\/(\d+\.\d+)/)
+      const match = userAgent.match(/Edg\/(\d+\.\d+)/)
       if (match) browserVersion = match[1]
     } else if (userAgent.includes('Chrome/')) {
       browser = 'Chrome'
